@@ -87,26 +87,40 @@ class _MainAppState extends State<MainApp> {
     return MaterialApp(
       home: Scaffold(
         backgroundColor: Colors.blueAccent,
-        body: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Screen(value: visor),
-            SizedBox(height: 20),
-            ButtonRow(labels: ["CE", "AC"], onClick: updateVisor),
-            SizedBox(height: 10),
-            ButtonRow(
-              labels: ["M+", "M-", "MRC", "GT", "->"],
-              onClick: updateVisor,
-            ),
-            SizedBox(height: 10),
-            ButtonRow(labels: ["7", "8", "9", "÷", "√"], onClick: updateVisor),
-            SizedBox(height: 10),
-            ButtonRow(labels: ["4", "5", "6", "×", "%"], onClick: updateVisor),
-            SizedBox(height: 10),
-            ButtonRow(labels: ["1", "2", "3", "-", "MU"], onClick: updateVisor),
-            SizedBox(height: 10),
-            ButtonRow(labels: ["0", "00", ".", "+", "="], onClick: updateVisor),
-          ],
+        body: SafeArea(
+          child: Column(
+            children: [
+              Expanded(
+                flex: 1,
+                child: Align(
+                  alignment: Alignment.bottomRight,
+                  child: Screen(value: visor),
+                ),
+              ),
+              Expanded(
+                flex: 2,
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      Expanded(child: ButtonRow(labels: const ["CE", "AC"], onClick: updateVisor)),
+                      const SizedBox(height: 8),
+                      Expanded(child: ButtonRow(labels: const ["M+", "M-", "MRC", "GT", "->"], onClick: updateVisor)),
+                      const SizedBox(height: 8),
+                      Expanded(child: ButtonRow(labels: const ["7", "8", "9", "÷", "√"], onClick: updateVisor)),
+                      const SizedBox(height: 8),
+                      Expanded(child: ButtonRow(labels: const ["4", "5", "6", "×", "%"], onClick: updateVisor)),
+                      const SizedBox(height: 8),
+                      Expanded(child: ButtonRow(labels: const ["1", "2", "3", "-", "MU"], onClick: updateVisor)),
+                      const SizedBox(height: 8),
+                      Expanded(child: ButtonRow(labels: const ["0", "00", ".", "+", "="], onClick: updateVisor)),
+                    ],
+                  ),
+                ),
+              )
+            ],
+          ),
         ),
       ),
     );
@@ -130,12 +144,16 @@ class Screen extends StatelessWidget {
         width: double.infinity,
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
         alignment: Alignment.centerRight,
-        child: Text(
-          value,
-          style: const TextStyle(
-            fontSize: 42,
-            fontWeight: FontWeight.w300,
-            color: Colors.white,
+        child: FittedBox(
+          fit: BoxFit.scaleDown,
+          alignment: Alignment.centerRight,
+          child: Text(
+            value,
+            style: const TextStyle(
+              fontSize: 42,
+              fontWeight: FontWeight.w300,
+              color: Colors.white,
+            ),
           ),
         ),
       ),
@@ -153,26 +171,30 @@ class ButtonRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: labels
           .map(
             (label) => Expanded(
               child: Padding(
-                padding: const EdgeInsets.all(4.0),
-                child: ElevatedButton(
-                  onPressed: () => onClick(label),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.orangeAccent,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20),
+                padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                child: AspectRatio(
+                  aspectRatio: 1,
+                  child: ElevatedButton(
+                    onPressed: () => onClick(label),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.orangeAccent,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      padding: EdgeInsets.zero,
                     ),
-                    padding: const EdgeInsets.symmetric(vertical: 20),
-                  ),
-                  child: Text(
-                    label,
-                    style: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
+                    child: Text(
+                      label,
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
                 ),
