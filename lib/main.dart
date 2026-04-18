@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'dart:math';
 
 void main() {
@@ -86,7 +87,7 @@ class _MainAppState extends State<MainApp> {
   Widget build(BuildContext context) {
     return MaterialApp(
       home: Scaffold(
-        backgroundColor: Colors.blueAccent,
+        backgroundColor: Colors.cyan,
         body: SafeArea(
           child: Column(
             children: [
@@ -104,17 +105,17 @@ class _MainAppState extends State<MainApp> {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
-                      Expanded(child: ButtonRow(labels: const ["CE", "AC"], onClick: updateVisor)),
+                      Expanded(child: ButtonRow(labels: const ["CE", "AC"], onClick: updateVisor, buttonColor: Colors.deepOrange.shade300)),
                       const SizedBox(height: 8),
-                      Expanded(child: ButtonRow(labels: const ["M+", "M-", "MRC", "GT", "->"], onClick: updateVisor)),
+                      Expanded(child: ButtonRow(labels: const ["M+", "M-", "MRC", "GT", "->"], onClick: updateVisor, buttonColor: Colors.lightGreen.shade300)),
                       const SizedBox(height: 8),
-                      Expanded(child: ButtonRow(labels: const ["7", "8", "9", "÷", "√"], onClick: updateVisor)),
+                      Expanded(child: ButtonRow(labels: const ["7", "8", "9", "÷", "√"], onClick: updateVisor, buttonColor: Colors.yellow.shade200)),
                       const SizedBox(height: 8),
-                      Expanded(child: ButtonRow(labels: const ["4", "5", "6", "×", "%"], onClick: updateVisor)),
+                      Expanded(child: ButtonRow(labels: const ["4", "5", "6", "×", "%"], onClick: updateVisor, buttonColor: Colors.pink.shade100)),
                       const SizedBox(height: 8),
-                      Expanded(child: ButtonRow(labels: const ["1", "2", "3", "-", "MU"], onClick: updateVisor)),
+                      Expanded(child: ButtonRow(labels: const ["1", "2", "3", "-", "MU"], onClick: updateVisor, buttonColor: Colors.purple.shade200)),
                       const SizedBox(height: 8),
-                      Expanded(child: ButtonRow(labels: const ["0", "00", ".", "+", "="], onClick: updateVisor)),
+                      Expanded(child: ButtonRow(labels: const ["0", "00", ".", "+", "="], onClick: updateVisor, buttonColor: Colors.cyan.shade200)),
                     ],
                   ),
                 ),
@@ -138,8 +139,8 @@ class Screen extends StatelessWidget {
       padding: const EdgeInsets.all(12.0),
       child: Container(
         decoration: BoxDecoration(
-          color: Colors.black,
-          borderRadius: BorderRadius.circular(20),
+          color: Color(0xFFC7D095),
+          borderRadius: BorderRadius.circular(15),
         ),
         width: double.infinity,
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
@@ -149,10 +150,10 @@ class Screen extends StatelessWidget {
           alignment: Alignment.centerRight,
           child: Text(
             value,
-            style: const TextStyle(
-              fontSize: 42,
+            style: GoogleFonts.shareTechMono(
+              fontSize: 50,
               fontWeight: FontWeight.w300,
-              color: Colors.white,
+              color: Colors.black87,
             ),
           ),
         ),
@@ -164,8 +165,9 @@ class Screen extends StatelessWidget {
 class ButtonRow extends StatelessWidget {
   final List<String> labels;
   final Function(String) onClick;
+  final Color buttonColor;
 
-  const ButtonRow({super.key, required this.labels, required this.onClick});
+  const ButtonRow({super.key, required this.labels, required this.onClick, required this.buttonColor});
 
   @override
   Widget build(BuildContext context) {
@@ -182,16 +184,16 @@ class ButtonRow extends StatelessWidget {
                   child: ElevatedButton(
                     onPressed: () => onClick(label),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.orangeAccent,
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(20),
-                      ),
+                      elevation: 8,
+                      shadowColor: Colors.black,
+                      backgroundColor: buttonColor,
+                      foregroundColor: Colors.black,
+                      shape: const CircleBorder(),
                       padding: EdgeInsets.zero,
                     ),
                     child: Text(
                       label,
-                      style: const TextStyle(
+                      style: GoogleFonts.varelaRound(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
                       ),
