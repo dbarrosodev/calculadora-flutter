@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:math';
 
 void main() {
   runApp(const MainApp());
@@ -35,7 +36,7 @@ class _MainAppState extends State<MainApp> {
         return;
       }
 
-      // 2. Categoria: OPERADORES (+, -, ×, ÷)
+      // 2. Categoria: OPERADORES (+, -, ×, ÷, √)
       if (buttonText == "+" ||
           buttonText == "-" ||
           buttonText == "×" ||
@@ -44,6 +45,13 @@ class _MainAppState extends State<MainApp> {
         operation = buttonText;
         resetVisor = true; // Avisa que o próximo número deve limpar o visor
         visor = buttonText;
+        return;
+      }
+
+      if (buttonText == "√") {
+        double num = double.parse(visor);
+        visor = sqrt(num).toStringAsFixed(2);
+        resetVisor = true;
         return;
       }
 
@@ -58,8 +66,7 @@ class _MainAppState extends State<MainApp> {
         if (operation == "+") visor = (num1 + num2).toString();
         if (operation == "-") visor = (num1 - num2).toString();
         if (operation == "×") visor = (num1 * num2).toString();
-        if (operation == "÷") visor = (num1 / num2).toString();
-
+        if (operation == "÷") visor = (num1 / num2).toStringAsFixed(2);
         operation = ""; // Reseta para a próxima conta
         resetVisor = true;
         return;
@@ -84,7 +91,7 @@ class _MainAppState extends State<MainApp> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Screen(value: visor),
-            SizedBox(height: 40),
+            SizedBox(height: 20),
             ButtonRow(labels: ["CE", "AC"], onClick: updateVisor),
             SizedBox(height: 10),
             ButtonRow(
@@ -121,12 +128,12 @@ class Screen extends StatelessWidget {
           borderRadius: BorderRadius.circular(20),
         ),
         width: double.infinity,
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 40),
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
         alignment: Alignment.centerRight,
         child: Text(
           value,
           style: const TextStyle(
-            fontSize: 60,
+            fontSize: 42,
             fontWeight: FontWeight.w300,
             color: Colors.white,
           ),
@@ -148,22 +155,26 @@ class ButtonRow extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: labels
           .map(
-            (label) => ElevatedButton(
-              onPressed: () => onClick(label),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.orangeAccent,
-                foregroundColor: Colors.white,
-                shape: CircleBorder(),
-                fixedSize: Size(60, 60),
-                padding: const EdgeInsets.all(0),
-              ),
-              child: Text(
-                label,
-                softWrap: false,
-                overflow: TextOverflow.visible,
-                style: const TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
+            (label) => Expanded(
+              child: Padding(
+                padding: const EdgeInsets.all(4.0),
+                child: ElevatedButton(
+                  onPressed: () => onClick(label),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.orangeAccent,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    padding: const EdgeInsets.symmetric(vertical: 20),
+                  ),
+                  child: Text(
+                    label,
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 ),
               ),
             ),
