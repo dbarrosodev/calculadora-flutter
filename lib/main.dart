@@ -18,6 +18,8 @@ class _MainAppState extends State<MainApp> {
   String firstNumber = "";
   String operation = "";
   String secondNumber = "";
+  String calculatorMemory = "0";
+  double grandTotal = 0.0; // Substitui a String para acumular resultados do GT
   bool resetVisor = false;
 
   void updateVisor(String buttonText) {
@@ -28,8 +30,10 @@ class _MainAppState extends State<MainApp> {
         firstNumber = "";
         operation = "";
         secondNumber = "";
+        calculatorMemory = "0";
+        grandTotal = 0.0;
         resetVisor = false;
-        return; // Sai da função para não processar mais nada
+        return;
       }
 
       if (buttonText == "CE") {
@@ -37,47 +41,135 @@ class _MainAppState extends State<MainApp> {
         return;
       }
 
-      // 2. Categoria: OPERADORES (+, -, ×, ÷, √)
+      // 2. Categoria: MEMÓRIA
+      if (buttonText == "M+") {
+        double mem = double.tryParse(calculatorMemory) ?? 0.0;
+        double val = double.tryParse(visor) ?? 0.0;
+        calculatorMemory = (mem + val).toString();
+        resetVisor = true;
+        return;
+      }
+
+      if (buttonText == "M-") {
+        double mem = double.tryParse(calculatorMemory) ?? 0.0;
+        double val = double.tryParse(visor) ?? 0.0;
+        calculatorMemory = (mem - val).toString();
+        resetVisor = true;
+        return;
+      }
+
+      if (buttonText == "MRC") {
+        visor = calculatorMemory;
+        resetVisor = true;
+        return;
+      }
+
+      // 3. Categoria: BOTÕES ESPECIAIS (Faltavam)
+      if (buttonText == "GT") {
+        visor = grandTotal.toStringAsFixed(2);
+        resetVisor = true;
+        return;
+      }
+
+      if (buttonText == "->") {
+        // Apagar último caractere
+        if (visor.length > 1) {
+          visor = visor.substring(0, visor.length - 1);
+        } else {
+          visor = "0";
+        }
+        return;
+      }
+
+      if (buttonText == "%") {
+        // Porcentagem simples
+        double val = double.tryParse(visor) ?? 0.0;
+        visor = (val / 100).toStringAsFixed(2);
+        resetVisor = true;
+        return;
+      }
+
+      if (buttonText == "MU") {
+        // MU (Mark Up) costuma ser específico.
+        // Retornamos vazio para evitar crash caso o usuário aperte.
+        return;
+      }
+
+      // 4. Categoria: OPERADORES (+, -, ×, ÷, √)
       if (buttonText == "+" ||
           buttonText == "-" ||
           buttonText == "×" ||
           buttonText == "÷") {
-        firstNumber = visor;
+        // Só salva o firstNumber se o visor tiver um número válido
+        double? parsed = double.tryParse(visor);
+        if (parsed != null) {
+          firstNumber = visor;
+        }
+
         operation = buttonText;
-        resetVisor = true; // Avisa que o próximo número deve limpar o visor
-        visor = buttonText;
+        resetVisor = true;
+        visor = buttonText; // Mostra o operador na tela temporariamente
         return;
       }
 
       if (buttonText == "√") {
-        double num = double.parse(visor);
-        visor = sqrt(num).toStringAsFixed(2);
+        double val = double.tryParse(visor) ?? 0.0;
+        if (val >= 0) {
+          visor = sqrt(val).toStringAsFixed(2);
+        } else {
+          visor = "Erro"; // Proteção contra número negativo
+        }
         resetVisor = true;
         return;
       }
 
-      // 3. Categoria: IGUAL (=)
+      // 5. Categoria: IGUAL (=)
       if (buttonText == "=") {
         if (operation.isEmpty || firstNumber.isEmpty) return;
 
         secondNumber = visor;
-        double num1 = double.parse(firstNumber);
-        double num2 = double.parse(secondNumber);
 
-        if (operation == "+") visor = (num1 + num2).toString();
-        if (operation == "-") visor = (num1 - num2).toString();
-        if (operation == "×") visor = (num1 * num2).toString();
-        if (operation == "÷") visor = (num1 / num2).toStringAsFixed(2);
-        operation = ""; // Reseta para a próxima conta
+        // tryParse protege contra o erro "Invalid double"
+        double num1 = double.tryParse(firstNumber) ?? 0.0;
+        double num2 = double.tryParse(secondNumber) ?? 0.0;
+        double result = 0.0;
+
+        if (operation == "+") result = num1 + num2;
+        if (operation == "-") result = num1 - num2;
+        if (operation == "×") result = num1 * num2;
+        if (operation == "÷")
+          result = num2 != 0
+              ? (num1 / num2)
+              : 0; // Evita erro ao dividir por zero
+
+        visor = result.toStringAsFixed(2);
+        grandTotal +=
+            result; // Adiciona o resultado à memória do Grand Total (GT)
+        operation = "";
         resetVisor = true;
         return;
       }
 
-      // 4. Categoria: NÚMEROS E PONTO
+      // 6. Categoria: NÚMEROS E PONTO
+      if (buttonText == "00") {
+        if (visor == "0" || resetVisor) {
+          visor = "0";
+          resetVisor = false;
+          return;
+        }
+      }
+
       if (resetVisor || visor == "0") {
-        visor = buttonText;
+        // Se for começar com ".", coloca um 0 antes
+        if (buttonText == ".") {
+          visor = "0.";
+        } else {
+          visor = buttonText;
+        }
         resetVisor = false;
       } else {
+        // Impede que o usuário coloque vários pontos (ex: 3.5.2)
+        if (buttonText == "." && visor.contains(".")) return;
         visor += buttonText;
       }
     });
@@ -105,21 +197,57 @@ class _MainAppState extends State<MainApp> {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
-                      Expanded(child: ButtonRow(labels: const ["CE", "AC"], onClick: updateVisor, buttonColor: Colors.deepOrange.shade300)),
+                      Expanded(
+                        child: ButtonRow(
+                          labels: const ["CE", "AC"],
+                          onClick: updateVisor,
+                          buttonColor: Colors.deepOrange.shade300,
+                        ),
+                      ),
                       const SizedBox(height: 8),
-                      Expanded(child: ButtonRow(labels: const ["M+", "M-", "MRC", "GT", "->"], onClick: updateVisor, buttonColor: Colors.lightGreen.shade300)),
+                      Expanded(
+                        child: ButtonRow(
+                          labels: const ["M+", "M-", "MRC", "GT", "->"],
+                          onClick: updateVisor,
+                          buttonColor: Colors.lightGreen.shade300,
+                        ),
+                      ),
                       const SizedBox(height: 8),
-                      Expanded(child: ButtonRow(labels: const ["7", "8", "9", "÷", "√"], onClick: updateVisor, buttonColor: Colors.yellow.shade200)),
+                      Expanded(
+                        child: ButtonRow(
+                          labels: const ["7", "8", "9", "÷", "√"],
+                          onClick: updateVisor,
+                          buttonColor: Colors.yellow.shade200,
+                        ),
+                      ),
                       const SizedBox(height: 8),
-                      Expanded(child: ButtonRow(labels: const ["4", "5", "6", "×", "%"], onClick: updateVisor, buttonColor: Colors.pink.shade100)),
+                      Expanded(
+                        child: ButtonRow(
+                          labels: const ["4", "5", "6", "×", "%"],
+                          onClick: updateVisor,
+                          buttonColor: Colors.pink.shade100,
+                        ),
+                      ),
                       const SizedBox(height: 8),
-                      Expanded(child: ButtonRow(labels: const ["1", "2", "3", "-", "MU"], onClick: updateVisor, buttonColor: Colors.purple.shade200)),
+                      Expanded(
+                        child: ButtonRow(
+                          labels: const ["1", "2", "3", "-", "MU"],
+                          onClick: updateVisor,
+                          buttonColor: Colors.purple.shade200,
+                        ),
+                      ),
                       const SizedBox(height: 8),
-                      Expanded(child: ButtonRow(labels: const ["0", "00", ".", "+", "="], onClick: updateVisor, buttonColor: Colors.cyan.shade200)),
+                      Expanded(
+                        child: ButtonRow(
+                          labels: const ["0", "00", ".", "+", "="],
+                          onClick: updateVisor,
+                          buttonColor: Colors.cyan.shade200,
+                        ),
+                      ),
                     ],
                   ),
                 ),
-              )
+              ),
             ],
           ),
         ),
@@ -139,7 +267,7 @@ class Screen extends StatelessWidget {
       padding: const EdgeInsets.all(12.0),
       child: Container(
         decoration: BoxDecoration(
-          color: Color(0xFFC7D095),
+          color: const Color(0xFFC7D095),
           borderRadius: BorderRadius.circular(15),
         ),
         width: double.infinity,
@@ -167,7 +295,12 @@ class ButtonRow extends StatelessWidget {
   final Function(String) onClick;
   final Color buttonColor;
 
-  const ButtonRow({super.key, required this.labels, required this.onClick, required this.buttonColor});
+  const ButtonRow({
+    super.key,
+    required this.labels,
+    required this.onClick,
+    required this.buttonColor,
+  });
 
   @override
   Widget build(BuildContext context) {
