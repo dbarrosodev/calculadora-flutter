@@ -19,7 +19,6 @@ class _MainAppState extends State<MainApp> {
   String operation = "";
   String secondNumber = "";
   String calculatorMemory = "0";
-  double grandTotal = 0.0; // Substitui a String para acumular resultados do GT
   bool resetVisor = false;
 
   void updateVisor(String buttonText) {
@@ -31,7 +30,6 @@ class _MainAppState extends State<MainApp> {
         operation = "";
         secondNumber = "";
         calculatorMemory = "0";
-        grandTotal = 0.0;
         resetVisor = false;
         return;
       }
@@ -64,13 +62,7 @@ class _MainAppState extends State<MainApp> {
         return;
       }
 
-      // 3. Categoria: BOTÕES ESPECIAIS (Faltavam)
-      if (buttonText == "GT") {
-        visor = grandTotal.toStringAsFixed(2);
-        resetVisor = true;
-        return;
-      }
-
+      // 3. Categoria: BOTÕES ESPECIAIS
       if (buttonText == "->") {
         // Apagar último caractere
         if (visor.length > 1) {
@@ -86,12 +78,6 @@ class _MainAppState extends State<MainApp> {
         double val = double.tryParse(visor) ?? 0.0;
         visor = (val / 100).toStringAsFixed(2);
         resetVisor = true;
-        return;
-      }
-
-      if (buttonText == "MU") {
-        // MU (Mark Up) costuma ser específico.
-        // Retornamos vazio para evitar crash caso o usuário aperte.
         return;
       }
 
@@ -129,7 +115,6 @@ class _MainAppState extends State<MainApp> {
 
         secondNumber = visor;
 
-        // tryParse protege contra o erro "Invalid double"
         double num1 = double.tryParse(firstNumber) ?? 0.0;
         double num2 = double.tryParse(secondNumber) ?? 0.0;
         double result = 0.0;
@@ -137,14 +122,9 @@ class _MainAppState extends State<MainApp> {
         if (operation == "+") result = num1 + num2;
         if (operation == "-") result = num1 - num2;
         if (operation == "×") result = num1 * num2;
-        if (operation == "÷")
-          result = num2 != 0
-              ? (num1 / num2)
-              : 0; // Evita erro ao dividir por zero
+        if (operation == "÷") result = num2 != 0 ? (num1 / num2) : 0;
 
         visor = result.toStringAsFixed(2);
-        grandTotal +=
-            result; // Adiciona o resultado à memória do Grand Total (GT)
         operation = "";
         resetVisor = true;
         return;
@@ -179,7 +159,8 @@ class _MainAppState extends State<MainApp> {
   Widget build(BuildContext context) {
     return MaterialApp(
       home: Scaffold(
-        backgroundColor: Colors.cyan,
+        backgroundColor:
+            Colors.lightBlue.shade100, // Azul claro do fundo da imagem
         body: SafeArea(
           child: Column(
             children: [
@@ -193,55 +174,54 @@ class _MainAppState extends State<MainApp> {
               Expanded(
                 flex: 2,
                 child: Padding(
-                  padding: const EdgeInsets.all(8.0),
+                  padding: const EdgeInsets.all(12.0),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
+                      // LINHA 1 (Toda Rosa)
                       Expanded(
                         child: ButtonRow(
-                          labels: const ["CE", "AC"],
-                          onClick: updateVisor,
-                          buttonColor: Colors.deepOrange.shade300,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Expanded(
-                        child: ButtonRow(
-                          labels: const ["M+", "M-", "MRC", "GT", "->"],
-                          onClick: updateVisor,
-                          buttonColor: Colors.lightGreen.shade300,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Expanded(
-                        child: ButtonRow(
-                          labels: const ["7", "8", "9", "÷", "√"],
-                          onClick: updateVisor,
-                          buttonColor: Colors.yellow.shade200,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Expanded(
-                        child: ButtonRow(
-                          labels: const ["4", "5", "6", "×", "%"],
+                          labels: const ["MRC", "M-", "M+", "√", "%"],
                           onClick: updateVisor,
                           buttonColor: Colors.pink.shade100,
                         ),
                       ),
                       const SizedBox(height: 8),
+                      // LINHA 2 (Toda Amarela)
                       Expanded(
                         child: ButtonRow(
-                          labels: const ["1", "2", "3", "-", "MU"],
+                          labels: const ["->", "7", "8", "9", "÷"],
                           onClick: updateVisor,
-                          buttonColor: Colors.purple.shade200,
+                          buttonColor: Colors.yellow.shade200,
                         ),
                       ),
                       const SizedBox(height: 8),
+                      // LINHA 3 (Laranja e Verde)
                       Expanded(
                         child: ButtonRow(
-                          labels: const ["0", "00", ".", "+", "="],
+                          labels: const ["CE", "4", "5", "6", "×"],
                           onClick: updateVisor,
-                          buttonColor: Colors.cyan.shade200,
+                          buttonColor: Colors.lightGreen.shade200,
+                          colorOverrides: {"CE": Colors.deepOrange.shade300},
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      // LINHA 4 (Laranja e Roxo)
+                      Expanded(
+                        child: ButtonRow(
+                          labels: const ["AC", "1", "2", "3", "-"],
+                          onClick: updateVisor,
+                          buttonColor: Colors.purple.shade100,
+                          colorOverrides: {"AC": Colors.deepOrange.shade300},
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      // LINHA 5 (Toda Branca)
+                      Expanded(
+                        child: ButtonRow(
+                          labels: const ["0", "00", ".", "=", "+"],
+                          onClick: updateVisor,
+                          buttonColor: Colors.white,
                         ),
                       ),
                     ],
@@ -264,10 +244,10 @@ class Screen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.all(12.0),
+      padding: const EdgeInsets.all(16.0),
       child: Container(
         decoration: BoxDecoration(
-          color: const Color(0xFFC7D095),
+          color: const Color(0xFFC7D095), // Cor acinzentada do visor na imagem
           borderRadius: BorderRadius.circular(15),
         ),
         width: double.infinity,
@@ -280,7 +260,7 @@ class Screen extends StatelessWidget {
             value,
             style: GoogleFonts.shareTechMono(
               fontSize: 50,
-              fontWeight: FontWeight.w300,
+              fontWeight: FontWeight.w400,
               color: Colors.black87,
             ),
           ),
@@ -294,12 +274,15 @@ class ButtonRow extends StatelessWidget {
   final List<String> labels;
   final Function(String) onClick;
   final Color buttonColor;
+  final Map<String, Color>?
+  colorOverrides; // Permite mudar a cor de botões específicos
 
   const ButtonRow({
     super.key,
     required this.labels,
     required this.onClick,
     required this.buttonColor,
+    this.colorOverrides,
   });
 
   @override
@@ -317,17 +300,19 @@ class ButtonRow extends StatelessWidget {
                   child: ElevatedButton(
                     onPressed: () => onClick(label),
                     style: ElevatedButton.styleFrom(
-                      elevation: 8,
-                      shadowColor: Colors.black,
-                      backgroundColor: buttonColor,
-                      foregroundColor: Colors.black,
+                      elevation:
+                          4, // Diminuí um pouco a sombra para ficar mais parecido com a foto
+                      shadowColor: Colors.black45,
+                      // Aqui ele checa se o botão tem uma cor especial. Se não tiver, usa a cor padrão da linha.
+                      backgroundColor: colorOverrides?[label] ?? buttonColor,
+                      foregroundColor: Colors.black87,
                       shape: const CircleBorder(),
                       padding: EdgeInsets.zero,
                     ),
                     child: Text(
                       label,
                       style: GoogleFonts.varelaRound(
-                        fontSize: 20,
+                        fontSize: 22,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
