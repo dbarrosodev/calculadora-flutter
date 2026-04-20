@@ -55,4 +55,4 @@ Certifique-se de que tem o ambiente Flutter instalado e configurado na sua máqu
 * `Screen`: O *widget* responsável pela renderização do mostrador superior com o fundo esverdeado estilo LCD.
 * `ButtonRow`: Um *widget* reutilizável que desenha e organiza as linhas de botões circulares da calculadora de forma proporcional.
 
-*** Desenvolvido em Flutter com foco na robustez e na experiência de utilizador.*** 
+*Desenvolvido em Flutter com foco na robustez e na experiência de utilizador.*
