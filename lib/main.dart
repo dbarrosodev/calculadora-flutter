@@ -17,9 +17,66 @@ class _MainAppState extends State<MainApp> {
   String visor = "0";
   String firstNumber = "";
   String operation = "";
-  String secondNumber = "";
   String calculatorMemory = "0";
   bool resetVisor = false;
+
+  String _formatResult(double value) {
+    if (value.isInfinite || value.isNaN) return "Erro";
+    
+    // Se for um número inteiro, remove o .0
+    if (value == value.toInt()) {
+      return value.toInt().toString();
+    }
+
+    String res = value.toString();
+    
+    // Se o número for muito longo, tentamos limitar as casas decimais primeiro
+    if (res.length > 12) {
+      // Se for um número pequeno ou grande demais, usa notação científica
+      if (value.abs() > 1e10 || (value.abs() < 1e-5 && value != 0)) {
+        return value.toStringAsExponential(5);
+      } else {
+        // Caso contrário, apenas limita os decimais
+        return value.toStringAsFixed(8).replaceAll(RegExp(r'0+$'), '').replaceAll(RegExp(r'\.$'), '');
+      }
+    }
+    return res;
+  }
+
+  void _calculate() {
+    if (operation.isEmpty || firstNumber.isEmpty) return;
+
+    double num1 = double.tryParse(firstNumber) ?? 0.0;
+    double num2 = double.tryParse(visor) ?? 0.0;
+    double result = 0.0;
+
+    switch (operation) {
+      case "+":
+        result = num1 + num2;
+        break;
+      case "-":
+        result = num1 - num2;
+        break;
+      case "×":
+        result = num1 * num2;
+        break;
+      case "÷":
+        if (num2 == 0) {
+          visor = "Erro";
+          operation = "";
+          firstNumber = "";
+          resetVisor = true;
+          return;
+        }
+        result = num1 / num2;
+        break;
+    }
+
+    visor = _formatResult(result);
+    firstNumber = visor;
+    operation = "";
+    resetVisor = true;
+  }
 
   void updateVisor(String buttonText) {
     setState(() {
@@ -28,7 +85,6 @@ class _MainAppState extends State<MainApp> {
         visor = "0";
         firstNumber = "";
         operation = "";
-        secondNumber = "";
         calculatorMemory = "0";
         resetVisor = false;
         return;
@@ -40,32 +96,30 @@ class _MainAppState extends State<MainApp> {
       }
 
       // 2. Categoria: MEMÓRIA
-      if (buttonText == "M+") {
+      if (buttonText == "M+" || buttonText == "M-") {
         double mem = double.tryParse(calculatorMemory) ?? 0.0;
         double val = double.tryParse(visor) ?? 0.0;
-        calculatorMemory = (mem + val).toString();
-        resetVisor = true;
-        return;
-      }
-
-      if (buttonText == "M-") {
-        double mem = double.tryParse(calculatorMemory) ?? 0.0;
-        double val = double.tryParse(visor) ?? 0.0;
-        calculatorMemory = (mem - val).toString();
+        if (buttonText == "M+") {
+          calculatorMemory = (mem + val).toString();
+        } else {
+          calculatorMemory = (mem - val).toString();
+        }
         resetVisor = true;
         return;
       }
 
       if (buttonText == "MRC") {
-        visor = calculatorMemory;
+        visor = _formatResult(double.tryParse(calculatorMemory) ?? 0.0);
         resetVisor = true;
         return;
       }
 
       // 3. Categoria: BOTÕES ESPECIAIS
       if (buttonText == "->") {
-        // Apagar último caractere
-        if (visor.length > 1) {
+        if (resetVisor || visor == "Erro") {
+          visor = "0";
+          resetVisor = false;
+        } else if (visor.length > 1) {
           visor = visor.substring(0, visor.length - 1);
         } else {
           visor = "0";
@@ -74,10 +128,17 @@ class _MainAppState extends State<MainApp> {
       }
 
       if (buttonText == "%") {
-        // Porcentagem simples
         double val = double.tryParse(visor) ?? 0.0;
-        visor = (val / 100).toStringAsFixed(2);
-        resetVisor = true;
+        if (operation.isNotEmpty && firstNumber.isNotEmpty) {
+          // Lógica contextual: 100 + 10% = 110
+          double base = double.tryParse(firstNumber) ?? 0.0;
+          double percentValue = (base * val) / 100;
+          visor = _formatResult(percentValue);
+        } else {
+          // Lógica simples: 50% = 0.5
+          visor = _formatResult(val / 100);
+        }
+        // resetVisor = true; // Não resetamos aqui para permitir ver o valor antes do "=" se necessário
         return;
       }
 
@@ -86,24 +147,22 @@ class _MainAppState extends State<MainApp> {
           buttonText == "-" ||
           buttonText == "×" ||
           buttonText == "÷") {
-        // Só salva o firstNumber se o visor tiver um número válido
-        double? parsed = double.tryParse(visor);
-        if (parsed != null) {
-          firstNumber = visor;
+        if (operation.isNotEmpty && !resetVisor) {
+          // Se já tem uma operação pendente e o usuário digitou um número, calcula o intermediário
+          _calculate();
         }
-
+        firstNumber = visor;
         operation = buttonText;
         resetVisor = true;
-        visor = buttonText; // Mostra o operador na tela temporariamente
         return;
       }
 
       if (buttonText == "√") {
         double val = double.tryParse(visor) ?? 0.0;
         if (val >= 0) {
-          visor = sqrt(val).toStringAsFixed(2);
+          visor = _formatResult(sqrt(val));
         } else {
-          visor = "Erro"; // Proteção contra número negativo
+          visor = "Erro";
         }
         resetVisor = true;
         return;
@@ -111,22 +170,7 @@ class _MainAppState extends State<MainApp> {
 
       // 5. Categoria: IGUAL (=)
       if (buttonText == "=") {
-        if (operation.isEmpty || firstNumber.isEmpty) return;
-
-        secondNumber = visor;
-
-        double num1 = double.tryParse(firstNumber) ?? 0.0;
-        double num2 = double.tryParse(secondNumber) ?? 0.0;
-        double result = 0.0;
-
-        if (operation == "+") result = num1 + num2;
-        if (operation == "-") result = num1 - num2;
-        if (operation == "×") result = num1 * num2;
-        if (operation == "÷") result = num2 != 0 ? (num1 / num2) : 0;
-
-        visor = result.toStringAsFixed(2);
-        operation = "";
-        resetVisor = true;
+        _calculate();
         return;
       }
 
@@ -139,8 +183,7 @@ class _MainAppState extends State<MainApp> {
         }
       }
 
-      if (resetVisor || visor == "0") {
-        // Se for começar com ".", coloca um 0 antes
+      if (resetVisor || visor == "0" || visor == "Erro") {
         if (buttonText == ".") {
           visor = "0.";
         } else {
@@ -148,7 +191,6 @@ class _MainAppState extends State<MainApp> {
         }
         resetVisor = false;
       } else {
-        // Impede que o usuário coloque vários pontos (ex: 3.5.2)
         if (buttonText == "." && visor.contains(".")) return;
         visor += buttonText;
       }
@@ -160,7 +202,7 @@ class _MainAppState extends State<MainApp> {
     return MaterialApp(
       home: Scaffold(
         backgroundColor:
-            Colors.lightBlue.shade100, // Azul claro do fundo da imagem
+            Colors.lightBlue.shade300, // Azul claro do fundo da imagem
         body: SafeArea(
           child: Column(
             children: [
@@ -221,7 +263,7 @@ class _MainAppState extends State<MainApp> {
                         child: ButtonRow(
                           labels: const ["0", "00", ".", "=", "+"],
                           onClick: updateVisor,
-                          buttonColor: Colors.white,
+                          buttonColor: Colors.lightBlue.shade100,
                         ),
                       ),
                     ],
